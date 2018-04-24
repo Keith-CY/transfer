@@ -1,0 +1,46 @@
+{
+  "name": "transfer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --config ./config/nodemon.json",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "repository": "https://github.com/Keith-CY/transfer",
+  "author": "Keith <keithwhisper@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/dotenv": "^4.0.3",
+    "@types/koa-router": "^7.0.27",
+    "@types/node": "^9.6.6",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.7.0",
+    "eslint-plugin-typescript": "^0.11.0",
+    "husky": "^0.14.3",
+    "nodemon": "^1.17.3",
+    "ts-node": "^6.0.0",
+    "typescript": "^2.8.3",
+    "typescript-eslint-parser": "^15.0.0"
+  },
+  "dependencies": {
+    "@types/koa": "^2.0.45",
+    "axios": "^0.18.0",
+    "chalk": "^2.4.0",
+    "dotenv": "^5.0.1",
+    "eslint-config-prettier": "^2.9.0",
+    "koa": "^2.5.0",
+    "koa-body": "^2.5.0",
+    "koa-router": "^7.4.0",
+    "lint-staged": "^7.0.4",
+    "log4js": "^2.5.3"
+  }
+}
