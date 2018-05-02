@@ -3,6 +3,20 @@ import { Context } from 'koa'
 import fileService from '../contexts/file'
 import authService from '../contexts/auth'
 
+interface FileError {
+  error: { code: number; message: string }
+}
+
+const readRemoteFile = async (
+  hash: string,
+  signature: string,
+  ctx: Context,
+) => {
+  const data = await fileService
+    .readRemoteFile(hash, signature)
+    .then(res => res.data)
+  return (ctx.body = data)
+}
 class Files {
   /**
    * @function index
@@ -41,7 +55,7 @@ class Files {
 
     const permitted = (await authService.isLocalReq(pubkey))
       ? true
-      : authService.isPermitted(pubkey)
+      : await authService.isPermitted(pubkey)
 
     if (!permitted) {
       // not permitted
@@ -58,13 +72,14 @@ class Files {
     if (isCached) {
       // cached
       const fileStream = fileService.readCachedFile(hash)
+      const { error } = fileStream as FileError
+      if (error) {
+        return readRemoteFile(hash, signature, ctx)
+      }
       return (ctx.body = fileStream)
     }
     // not cached
-    const res = await fileService
-      .readRemoteFile(hash, signature)
-      .then(_res => _res.data)
-    return (ctx.body = res)
+    return readRemoteFile(hash, signature, ctx)
 
     // return ctx.body = fileService.readRemoteFile(hash, signature).then(.pipe(ctx.body)
   }
