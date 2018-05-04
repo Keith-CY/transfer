@@ -1,88 +1,116 @@
 import * as fs from 'fs'
+import * as path from 'path'
+import * as WebSocket from 'ws'
 import { Context } from 'koa'
 import fileService from '../contexts/file'
 import authService from '../contexts/auth'
+import cacheFile from '../utils/cacheFile'
 
 interface FileError {
   error: { code: number; message: string }
 }
 
-const readRemoteFile = async (
-  hash: string,
-  signature: string,
-  ctx: Context,
-) => {
-  const data = await fileService
-    .readRemoteFile(hash, signature)
-    .then(res => res.data)
-  return (ctx.body = data)
-}
 class Files {
   /**
-   * @function index
-   * @description show file list
-   * @param {Context} ctx
-   * @param {Function} next
-   * @returns
-   * @memberof Files
-   */
-  public static async index (ctx: Context, next: Function) {
-    const files = await ['file1', 'file2']
-    return files
-  }
-
-  /**
    * @function show
-   * @description request single file
-   * @param {Context} ctx
-   * @param {Function} next
-   * @memberof Files
+   * @description load local file
    */
   public static async show (ctx: Context, next: Function) {
-    const { signature } = ctx.request.query
     const { hash } = ctx.params
-    // check required params {signature, hash}
-    if (!hash || !signature) {
-      return (ctx.body = {
-        error: {
-          code: -1,
-          message: 'Hash or Signature Missed',
-        },
-      })
+    const result: {
+    data?: string
+    error?: FileError
+    } = await fileService.getFileUrl(hash)
+
+    if (result.error) {
+      return (ctx.body = result.error)
     }
-    // extract pubkey
-    const pubkey = signature
 
-    const permitted = (await authService.isLocalReq(pubkey))
-      ? true
-      : await authService.isPermitted(pubkey)
-
-    if (!permitted) {
-      // not permitted
-      return (ctx.body = {
-        error: {
-          code: -1,
-          message: 'No Permission',
-        },
-      })
-    }
-    // permitted
-    const isCached = fileService.isCached(hash)
-
-    if (isCached) {
+    if (result.data) {
       // cached
-      const fileStream = fileService.readCachedFile(hash)
+      const fileStream = await fileService.readCachedFile(result.data)
       const { error } = fileStream as FileError
       if (error) {
-        return readRemoteFile(hash, signature, ctx)
+        return (ctx.body = error)
       }
       return (ctx.body = fileStream)
     }
-    // not cached
-    return readRemoteFile(hash, signature, ctx)
-
-    // return ctx.body = fileService.readRemoteFile(hash, signature).then(.pipe(ctx.body)
+    return (ctx.body = {
+      error: {
+        code: -1,
+        message: 'File Loading Failed',
+      },
+    })
   }
+
+  /**
+   * @function create
+   * @description upload file
+   */
+  public static async create (ctx: Context, next: Function) {
+    const { hash } = ctx.request.body.fields
+    const { file } = ctx.request.body.files
+    const result = await cacheFile(hash, file)
+    return (ctx.body = result)
+  }
+
+  /**
+   * @function send
+   * @description send file to remote
+   */
+  public static async send (ctx: Context, next: Function) {
+    const { hash, remote } = ctx.request.query
+    // verify params
+    if (!hash || !remote) {
+      return (ctx.body = {
+        error: {
+          code: -1,
+          message: 'hash or remote requried',
+        },
+      })
+    }
+
+    // get file url
+    const result: {
+    data?: string
+    error?: FileError
+    } = await fileService.getFileUrl(hash)
+
+    if (result.error) {
+      return (ctx.body = result.error)
+    }
+
+    if (result.data) {
+      const file = fs.readFileSync(
+        path.join(__dirname, '../public/files/', result.data),
+      )
+
+      const ws = new WebSocket(remote.toString())
+      ws.on('open', () => {
+        ws.send(file, { binary: true }, err => {
+          if (err) {
+            console.error(err)
+          }
+        })
+      })
+      return (ctx.body = {
+        data: 'File sent',
+      })
+    }
+    return (ctx.body = {
+      error: {
+        code: -1,
+        message: 'File load failed',
+      },
+    })
+  }
+}
+
+const verifyParams = (requireds: string[], params: any) => {
+  const errors = requireds
+    .map(required => (params[required] === 'undefined' ? required : false))
+    .filter(err => err)
+  return errors
 }
 
 export default Files

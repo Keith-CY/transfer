@@ -1,8 +1,11 @@
+import * as fs from 'fs'
 import * as path from 'path'
 import * as Koa from 'koa'
-import * as koaBody from 'koa-body'
+import * as WebSocket from 'ws'
+import * as bodyParser from 'koa-body'
 import * as log4js from 'log4js'
 import router from './routes'
+import cacheFile from './utils/cacheFile'
 
 const logger = log4js.getLogger()
 logger.level = 'info'
@@ -20,9 +23,11 @@ const app = new Koa()
 
 // enable body parser
 app.use(
-  koaBody({
+  bodyParser({
+    multipart: true,
+    urlencoded: true,
+    json: true,
     formidable: {
-      uploadDir: path.join(__dirname, './public/files'),
       keepExtensions: true,
     },
   }),
@@ -32,6 +37,21 @@ app.use(
 app.use(router.routes()).use(router.allowedMethods())
 
 // start app
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   logger.info(`Server is running on ${PORT}`)
+})
+
+const wss = new WebSocket.Server({
+  server,
+})
+
+wss.on('message', msg => {
+  console.log(`[Provider]: ${msg}`)
+})
+
+wss.on('connection', ws => {
+  ws.on('message', async (data: Buffer, flags: { binary?: boolean }) => {
+    const result = await cacheFile(`${Math.round(Math.random() * 100)}`, data)
+    ws.send(`[Receiver]${JSON.stringify(result)}`)
+  })
 })

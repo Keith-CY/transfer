@@ -5,7 +5,8 @@ const router = new Router({
   prefix: '/files',
 })
 
-router.get('/', controller.index)
-router.get('/:hash', controller.show)
+router.get('/send', controller.send)
+router.post('/create', controller.create)
+router.get('/show/:hash', controller.show)
 
 export default router
