@@ -1,6 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as WebSocket from 'ws'
+import * as FormData from 'form-data'
+import axios from 'axios'
 import { Context } from 'koa'
 import fileService from '../contexts/file'
 import authService from '../contexts/auth'
@@ -20,7 +22,7 @@ class Files {
     const result: {
     data?: string
     error?: FileError
-    } = await fileService.getFileUrl(hash)
+    } = await fileService.getFileName(hash)
 
     if (result.error) {
       return (ctx.body = result.error)
@@ -48,9 +50,9 @@ class Files {
    * @description upload file
    */
   public static async create (ctx: Context, next: Function) {
-    const { hash } = ctx.request.body.fields
-    const { file } = ctx.request.body.files
-    const result = await cacheFile(hash, file)
+    const { hash, filename } = ctx.request.body.fields
+    const file = ctx.request.body.fields.file || ctx.request.body.files.file
+    const result = await cacheFile(hash, filename, file)
     return (ctx.body = result)
   }
 
@@ -70,11 +72,11 @@ class Files {
       })
     }
 
-    // get file url
+    // get file name
     const result: {
     data?: string
     error?: FileError
-    } = await fileService.getFileUrl(hash)
+    } = await fileService.getFileName(hash)
 
     if (result.error) {
       return (ctx.body = result.error)
@@ -85,14 +87,20 @@ class Files {
         path.join(__dirname, '../public/files/', result.data),
       )
 
-      const ws = new WebSocket(remote.toString())
-      ws.on('open', () => {
-        ws.send(file, { binary: true }, err => {
-          if (err) {
-            console.error(err)
-          }
+      const formData = new FormData()
+      formData.append('hash', `${hash}test`)
+      formData.append('filename', result.data)
+      formData.append('file', file)
+
+      axios
+        .post('http://127.0.0.1:3000/files/create', formData, {
+          headers: formData.getHeaders(),
         })
-      })
+        .then(res => {
+          console.log(res)
+        })
+        .catch(err => console.log(err.message))
+
       return (ctx.body = {
         data: 'File sent',
       })
@@ -100,7 +108,7 @@ class Files {
     return (ctx.body = {
       error: {
         code: -1,
-        message: 'File load failed',
+        message: 'File Not Found',
       },
     })
   }

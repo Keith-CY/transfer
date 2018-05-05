@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as Koa from 'koa'
-import * as WebSocket from 'ws'
+// import * as WebSocket from 'ws'
 import * as bodyParser from 'koa-body'
 import * as log4js from 'log4js'
 import router from './routes'
@@ -41,17 +41,17 @@ const server = app.listen(PORT, () => {
   logger.info(`Server is running on ${PORT}`)
 })
 
-const wss = new WebSocket.Server({
-  server,
-})
+// const wss = new WebSocket.Server({
+//   server,
+// })
 
-wss.on('message', msg => {
-  console.log(`[Provider]: ${msg}`)
-})
+// wss.on('message', msg => {
+//   console.log(`[Provider]: ${msg}`)
+// })
 
-wss.on('connection', ws => {
-  ws.on('message', async (data: Buffer, flags: { binary?: boolean }) => {
-    const result = await cacheFile(`${Math.round(Math.random() * 100)}`, data)
-    ws.send(`[Receiver]${JSON.stringify(result)}`)
-  })
-})
+// wss.on('connection', ws => {
+//   ws.on('message', async (data: Buffer, flags: { binary?: boolean }) => {
+//     const result = await cacheFile(`${Math.round(Math.random() * 100)}`, data)
+//     ws.send(`[Receiver]${JSON.stringify(result)}`)
+//   })
+// })

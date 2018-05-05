@@ -17,8 +17,8 @@ class FileService {
         hash,
       },
     })
-      .then(url => ({
-        data: url,
+      .then(filename => ({
+        data: filename,
       }))
       .catch(err => ({
         error: {
@@ -27,30 +27,32 @@ class FileService {
         },
       }))
   }
-  public static cacheFile (hash: string, url: string) {
-    return service.sync().then(() => CachedFile.create({
-      hash,
-      url,
-    })
-      .then(() => ({
-        data: true,
-      }))
-      .catch(err => ({
-        error: {
-          code: -1,
-          message: err.errors
-            .map((dbError: { message: string }) => dbError.message)
-            .join(),
-        },
-      })))
+  public static cacheFile (hash: string, filename: string) {
+    return service.sync().then(() =>
+      CachedFile.create({
+        hash,
+        filename,
+      })
+        .then(() => ({
+          data: true,
+        }))
+        .catch(err => ({
+          error: {
+            code: -1,
+            message: err.errors
+              .map((dbError: { message: string }) => dbError.message)
+              .join(),
+          },
+        })),
+    )
   }
-  public static getFileUrl (hash: string) {
+  public static getFileName (hash: string) {
     return CachedFile.findOne({
       where: {
         hash,
       },
     })
-      .then((file: { url: string }) => ({ data: file.url }))
+      .then((file: { filename: string }) => ({ data: file.filename }))
       .catch(err => ({ error: err }))
   }
 
@@ -70,21 +72,6 @@ class FileService {
         },
       }
     }
-  }
-
-  public static readRemoteFile (
-    hash: string,
-    // signature: string
-  ) {
-    logger.info(`Request remote resource with hash: ${hash}, `)
-    const resPipe = axios({
-      method: 'get',
-      // url: 'http://127.0.0.1:8081/cryptape/projects/nervos-web/CNAME',
-      url: 'http://47.97.171.140:3000/files/111',
-      responseType: 'stream',
-    })
-
-    return resPipe
   }
 }
 

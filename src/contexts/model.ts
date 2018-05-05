@@ -30,7 +30,12 @@ export const CachedFile = sequelize.define('cached_file', {
     primaryKey: true,
     unique: true,
   },
-  url: { type: Sequelize.STRING, allowNull: false },
+  filename: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  // uri: { type: Sequelize.STRING, allowNull: false },
 })
 
 export default sequelize
