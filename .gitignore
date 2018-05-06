@@ -4,5 +4,6 @@ yarn-error.log
 files
 contracts
 dist
-.env
+.env^
 .env.prod
+*.tar.gz
