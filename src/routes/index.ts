@@ -7,6 +7,6 @@ const router = new Router({
 
 router.get('/send', controller.send)
 router.post('/create', controller.create)
-router.get('/show/:hash', controller.show)
+router.get('/show/:key', controller.show)
 
 export default router

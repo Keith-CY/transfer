@@ -1,10 +1,24 @@
+import * as path from 'path'
 import Sequelize from 'sequelize'
 
-process.env.DATABASE = 'static_dev'
-process.env.USERNAME = 'postgres'
-process.env.PASSWORD = 'postgres'
-process.env.DATABASE_HOST = 'localhost'
-process.env.DIALECT = 'postgres'
+declare class process {
+  static env: {
+    NODE_ENV: string
+    DATABASE: string
+    USERNAME: string
+    PASSWORD: string
+    DATABASE_HOST: string
+    DIALECT: string
+    UPLOAD_DIR: string
+  }
+}
+require('dotenv').config({
+  path: path.join(
+    __dirname,
+    '../../config/',
+    process.env.NODE_ENV === 'development' ? '.env' : '.env.prod',
+  ),
+})
 
 const sequelize = new Sequelize(
   process.env.DATABASE,
@@ -24,7 +38,7 @@ const sequelize = new Sequelize(
 )
 
 export const CachedFile = sequelize.define('cached_file', {
-  hash: {
+  key: {
     type: Sequelize.STRING,
     allowNull: false,
     primaryKey: true,
@@ -35,7 +49,6 @@ export const CachedFile = sequelize.define('cached_file', {
     allowNull: false,
     unique: true,
   },
-  // uri: { type: Sequelize.STRING, allowNull: false },
 })
 
 export default sequelize

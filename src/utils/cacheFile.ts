@@ -1,70 +1,69 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import fileService from '../contexts/file'
+import { FileErrors, FileAction } from './../enums'
+import logger from '../utils/logger'
 
-export default async (hash: string, filename: string, file: any) => {
-  if (!hash || !file || !filename) {
+declare class process {
+  static env: {
+    UPLOAD_DIR: string
+  }
+}
+
+export default async (key: string, file: any, force: boolean) => {
+  let action = FileAction.CREATE
+  if (!key || !file) {
     return {
       error: {
         code: -1,
-        message: 'Hash or Filename or File Missed',
+        message: 'Key or File Missed',
       },
     }
   }
 
-  const cached = await fileService.getFileName(hash)
+  logger.debug(`cache file with: key: ${key}, force: ${force}`)
+
+  const cached = await fileService.getFileName(key)
+
   if ((cached as { data: string }).data) {
-    return {
-      error: {
-        code: -1,
-        message: 'File Exist',
-      },
+    if (!force) {
+      return {
+        error: {
+          code: -1,
+          message: FileErrors.Exist,
+        },
+      }
     }
+    action = FileAction.UPDATE
   }
 
-  const uniqueFilename = `${Date.now()}-${filename}`
+  // const filename = `${Date.now()}`
+  const filename = key
 
   if (file.path) {
     const reader = fs.createReadStream(file.path)
     const writer = fs.createWriteStream(
-      path.join(__dirname, '../public/files/', uniqueFilename),
+      path.join(__dirname, '../', process.env.UPLOAD_DIR, filename),
     )
     reader.pipe(writer)
   } else {
     fs.writeFileSync(
-      path.join(__dirname, '../public/files/', uniqueFilename),
+      path.join(__dirname, '../', process.env.UPLOAD_DIR, filename),
       file,
     )
   }
-  // let url = ''
 
-  // console.log('caching')
-  // console.log(hash)
-  // console.log(file)
-  // if (file.path) {
-  //   // get file path
-  //   const pathSegs = file.path.split('/')
-  //   url = pathSegs[pathSegs.length - 1]
-
-  //   // write file to public/files
-  //   const reader = fs.createReadStream(file.path)
-  //   const writer = fs.createWriteStream(
-  //     path.join(__dirname, '../public/files/', url),
-  //   )
-  //   reader.pipe(writer)
-  // } else {
-  //   console.log('buffer?')
-  //   console.log(file)
-  //   url = `${Math.round(Math.random() * 1000)}`
-  //   fs.writeFileSync(path.join(__dirname, '../public/files/', url), file)
-  // }
-
-  const res = await fileService.cacheFile(hash, uniqueFilename)
+  const res =
+    action === FileAction.CREATE
+      ? await fileService.cacheFile(key, filename)
+      : await fileService.updateFile(key, filename)
   if (!(res as { data: boolean }).data) {
     return res
   }
   return {
     data: true,
-    message: `File ${hash} Upload successlly`,
+    message: `File ${key} ${
+      action === FileAction.UPDATE ? 'Updated' : 'Uploaded'
+    } successlly`,
   }
 }

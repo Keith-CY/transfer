@@ -1,15 +1,28 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import * as WebSocket from 'ws'
 import * as FormData from 'form-data'
 import axios from 'axios'
 import { Context } from 'koa'
 import fileService from '../contexts/file'
-import authService from '../contexts/auth'
 import cacheFile from '../utils/cacheFile'
+import { FileErrors } from './../enums'
+import { CachedFile } from './../contexts/model'
+import logger from '../utils/logger'
+// import { process } from '../types/index'
 
-interface FileError {
-  error: { code: number; message: string }
+declare class process {
+  static env: {
+    UPLOAD_DIR: string
+  }
+}
+interface SError {
+  code: number
+  message: string
+}
+
+interface FileData {
+  data?: string
+  error?: SError
 }
 
 class Files {
@@ -18,31 +31,14 @@ class Files {
    * @description load local file
    */
   public static async show (ctx: Context, next: Function) {
-    const { hash } = ctx.params
-    const result: {
-    data?: string
-    error?: FileError
-    } = await fileService.getFileName(hash)
-
-    if (result.error) {
-      return (ctx.body = result.error)
-    }
+    const { key } = ctx.params
+    const result: FileData = await fileService.getFileName(key)
 
     if (result.data) {
-      // cached
-      const fileStream = await fileService.readCachedFile(result.data)
-      const { error } = fileStream as FileError
-      if (error) {
-        return (ctx.body = error)
-      }
+      const fileStream = await fileService.loadCachedFile(result.data)
       return (ctx.body = fileStream)
     }
-    return (ctx.body = {
-      error: {
-        code: -1,
-        message: 'File Loading Failed',
-      },
-    })
+    return (ctx.body = result)
   }
 
   /**
@@ -50,9 +46,9 @@ class Files {
    * @description upload file
    */
   public static async create (ctx: Context, next: Function) {
-    const { hash, filename } = ctx.request.body.fields
+    const { key, force = 0 } = ctx.request.body.fields
     const file = ctx.request.body.fields.file || ctx.request.body.files.file
-    const result = await cacheFile(hash, filename, file)
+    const result = await cacheFile(key, file, !!+force)
     return (ctx.body = result)
   }
 
@@ -61,64 +57,59 @@ class Files {
    * @description send file to remote
    */
   public static async send (ctx: Context, next: Function) {
-    const { hash, remote } = ctx.request.query
+    const { key, remote } = ctx.request.query
     // verify params
-    if (!hash || !remote) {
+    if (!key || !remote) {
       return (ctx.body = {
         error: {
           code: -1,
-          message: 'hash or remote requried',
+          message: 'key or remote requried',
         },
       })
     }
 
-    // get file name
-    const result: {
-    data?: string
-    error?: FileError
-    } = await fileService.getFileName(hash)
+    logger.debug(`Sending file: key: ${key}`)
 
-    if (result.error) {
-      return (ctx.body = result.error)
-    }
+    logger.debug('getting filename')
+    const result: FileData = await fileService.getFileName(key)
+    logger.debug(result.toString())
 
     if (result.data) {
-      const file = fs.readFileSync(
-        path.join(__dirname, '../public/files/', result.data),
+      let file
+      // read file
+      try {
+        fs.accessSync(
+          path.join(__dirname, '../', process.env.UPLOAD_DIR, result.data),
+          fs.constants.R_OK,
+        )
+      } catch (err) {
+        return (ctx.body = {
+          error: { code: -1, message: FileErrors.NotFound },
+        })
+      }
+
+      // form data
+      const formData = new FormData()
+      formData.append('key', `${key}-test`)
+      // formData.append('file', file)
+      formData.append(
+        'file',
+        fs.createReadStream(
+          path.join(__dirname, '../', process.env.UPLOAD_DIR, result.data),
+        ),
       )
 
-      const formData = new FormData()
-      formData.append('hash', `${hash}test`)
-      formData.append('filename', result.data)
-      formData.append('file', file)
-
-      axios
-        .post('http://127.0.0.1:3000/files/create', formData, {
+      const sendResponse = await axios
+        .post(remote, formData, {
           headers: formData.getHeaders(),
         })
-        .then(res => {
-          console.log(res)
-        })
-        .catch(err => console.log(err.message))
+        .then(res => res.data)
+        .catch(err => err)
 
-      return (ctx.body = {
-        data: 'File sent',
-      })
+      return (ctx.body = sendResponse)
     }
-    return (ctx.body = {
-      error: {
-        code: -1,
-        message: 'File Not Found',
-      },
-    })
+    return (ctx.body = result)
   }
-}
-
-const verifyParams = (requireds: string[], params: any) => {
-  const errors = requireds
-    .map(required => (params[required] === 'undefined' ? required : false))
-    .filter(err => err)
-  return errors
 }
 
 export default Files
