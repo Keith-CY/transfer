@@ -16,7 +16,7 @@ export default async (key: string, file: any, force: boolean) => {
     return {
       error: {
         code: -1,
-        message: 'Key or File Missed',
+        message: 'Key or Content Missed',
       },
     }
   }
