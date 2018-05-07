@@ -1,5 +1,5 @@
-import * as fs from 'fs'
 import * as path from 'path'
+import * as fs from 'fs'
 import fileService from '../contexts/file'
 import { FileErrors, FileAction } from './../enums'
 import logger from '../utils/logger'
@@ -10,8 +10,16 @@ declare class process {
   }
 }
 
+/**
+ * @function CachedFile
+ * @description
+ * @param {string} key - unique index
+ * @param {stream | string} content - user info
+ * @param {boolean} force - overwritten or not
+ */
 export default async (key: string, file: any, force: boolean) => {
   let action = FileAction.CREATE
+  // verify params, key and file are required
   if (!key || !file) {
     return {
       error: {
@@ -23,10 +31,12 @@ export default async (key: string, file: any, force: boolean) => {
 
   logger.debug(`cache file with: key: ${key}, force: ${force}`)
 
+  // query file name from db
   const cached = await fileService.getFileName(key)
 
   if ((cached as { data: string }).data) {
     if (!force) {
+      // overwritten is not allowed
       return {
         error: {
           code: -1,
@@ -37,7 +47,7 @@ export default async (key: string, file: any, force: boolean) => {
     action = FileAction.UPDATE
   }
 
-  // const filename = `${Date.now()}`
+  // use key as filename
   const filename = key
 
   if (file.path) {

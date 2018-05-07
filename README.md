@@ -42,7 +42,7 @@ pm2 start ./config/process.yml
 #### URL
 
 ```bash
-POST http://localhost:3000/files/create
+[POST] http://localhost:3000/files/create
 ```
 
 #### Params
@@ -51,7 +51,7 @@ POST http://localhost:3000/files/create
 {
   "key": "hello_world", // string, required
   "content": "Hello World", // string, stream, required
-  "force": false // boolean, optional
+  "forceFlag": false // boolean, optional
 }
 ```
 
@@ -85,7 +85,7 @@ POST http://localhost:3000/files/create
 #### URL
 
 ```bash
-GET http://localhost:3000/files/show/hello_world
+[GET] http://localhost:3000/files/show/hello_world
 ```
 
 #### Params
@@ -114,7 +114,7 @@ Return Content or error
 #### URL
 
 ```bash
-GET http://47.97.171.140:3000/files/send
+[GET] http://47.97.171.140:3000/files/send
 ```
 
 #### Params

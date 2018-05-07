@@ -12,7 +12,14 @@ declare class process {
     UPLOAD_DIR: string
   }
 }
+
 class FileService {
+  /**
+   * @method cacheFile
+   * @description insert to db
+   * @param {string} key
+   * @param {string} filename
+   */
   public static cacheFile (key: string, filename: string) {
     logger.debug('caching file')
     return service.sync().then(() =>
@@ -41,6 +48,12 @@ class FileService {
         }),
     )
   }
+  /**
+   * @method updateFile
+   * @description update record
+   * @param {string} key
+   * @param {string} filename
+   */
   public static updateFile (key: string, filename: string) {
     logger.debug('updating file')
     return CachedFile.update(
@@ -59,8 +72,10 @@ class FileService {
       })
       .catch((err: any) => {
         const message = err.errors
-          .map((dbError: { message: string }) => dbError.message)
-          .join()
+          ? err.errors
+            .map((dbError: { message: string }) => dbError.message)
+            .join()
+          : JSON.stringify(err)
         logger.warn('updating file failed')
         logger.warn(message)
         return {
@@ -71,6 +86,11 @@ class FileService {
         }
       })
   }
+  /**
+   * @method getFileName
+   * @description query file name
+   * @param {string} key
+   */
   public static getFileName (key: string) {
     logger.debug('getting filename')
     return CachedFile.findOne({
@@ -95,7 +115,9 @@ class FileService {
       .catch(err => {
         logger.warn(`get filename failed`)
         logger.warn(err)
-        return { error: err }
+        return {
+          error: { code: -1, message: JSON.stringify(err) },
+        }
       })
   }
 
