@@ -24,11 +24,16 @@ interface FileData {
   data?: string
   error?: SError
 }
-
+/**
+ * @class Files
+ * @description file controller, including show, create, send mehtods
+ */
 class Files {
   /**
-   * @function show
+   * @method show
    * @description load local file
+   * @param {string} key - unique index
+   * @returns {stream} fileStream
    */
   public static async show (ctx: Context, next: Function) {
     const { key } = ctx.params
@@ -42,13 +47,18 @@ class Files {
   }
 
   /**
-   * @function create
-   * @description upload file
+   * @method create
+   * @description cache file locally
+   * @param {string} key - unique index
+   * @param {string | stream} content - the file should be cached
+   * @param {boolean} forceFlag
+   * @returns
    */
   public static async create (ctx: Context, next: Function) {
-    const { key, force = 0 } = ctx.request.body.fields
-    const file = ctx.request.body.fields.file || ctx.request.body.files.file
-    const result = await cacheFile(key, file, !!+force)
+    const { key, forceFlag = 0 } = ctx.request.body.fields
+    const file =
+      ctx.request.body.fields.content || ctx.request.body.files.content
+    const result = await cacheFile(key, file, !!+forceFlag)
     return (ctx.body = result)
   }
 
@@ -75,7 +85,7 @@ class Files {
     logger.debug(result.toString())
 
     if (result.data) {
-      let file
+      // let file
       // read file
       try {
         fs.accessSync(
@@ -90,7 +100,7 @@ class Files {
 
       // form data
       const formData = new FormData()
-      formData.append('key', `${key}-test`)
+      formData.append('key', `${key}`)
       // formData.append('file', file)
       formData.append(
         'file',

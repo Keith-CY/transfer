@@ -32,8 +32,10 @@ class FileService {
             error: {
               code: -1,
               message: err.errors
-                .map((dbError: { message: string }) => dbError.message)
-                .join(),
+                ? err.errors
+                  .map((dbError: { message: string }) => dbError.message)
+                  .join()
+                : JSON.stringify(err),
             },
           }
         }),
