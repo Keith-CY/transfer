@@ -103,7 +103,7 @@ class Files {
       formData.append('key', `${key}`)
       // formData.append('file', file)
       formData.append(
-        'file',
+        'content',
         fs.createReadStream(
           path.join(__dirname, '../', process.env.UPLOAD_DIR, result.data),
         ),
