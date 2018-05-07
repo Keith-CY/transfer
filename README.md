@@ -25,7 +25,7 @@ cp ./config/.env.example ./config/.env.prod
 
 ```bash
 yarn run build
-# ro
+# or
 npm run build
 ```
 
@@ -35,29 +35,23 @@ npm run build
 pm2 start ./config/process.yml
 ```
 
-## API
+## APIs
 
 ### Upload Content
 
 #### URL
 
 ```bash
-http://localhost:3000/files/create
-```
-
-#### Method
-
-```bash
-POST
+POST http://localhost:3000/files/create
 ```
 
 #### Params
 
 ```json
 {
-  "key": "hello_world", // string
-  "content": "Hello World", // string, stream
-  "force": false // boolean
+  "key": "hello_world", // string, required
+  "content": "Hello World", // string, stream, required
+  "force": false // boolean, optional
 }
 ```
 
@@ -91,13 +85,7 @@ POST
 #### URL
 
 ```bash
-http://localhost:3000/files/show/hello_world
-```
-
-#### Method
-
-```bash
-GET
+GET http://localhost:3000/files/show/hello_world
 ```
 
 #### Params
@@ -126,15 +114,15 @@ Return Content or error
 #### URL
 
 ```bash
-http://47.97.171.140:3000/files/send
+GET http://47.97.171.140:3000/files/send
 ```
 
 #### Params
 
 ```json
 {
-  "key": "hello_world",
-  "remote": "http://localhost:3000/files/create"
+  "key": "hello_world", // string, required
+  "remote": "http://localhost:3000/files/create" // string, required
 }
 ```
 
@@ -144,11 +132,4 @@ None
 
 #### Returns
 
-```json
-{
-  "error": {
-    "code": -1,
-    "message": "Error Message"
-  }
-}
-```
+Same as `Create Method`
