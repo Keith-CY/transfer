@@ -64,7 +64,7 @@ class Files {
       return (ctx.body = result)
     }
     const { key, forceFlag = ForceFlag.NO } = ctx.request.body
-    const file = ctx.body.content || ctx.request.body.files.content
+    const file = ctx.request.body.content || ctx.request.body.files.content
     const result = await cacheFile(key, file, forceFlag)
     return (ctx.body = result)
   }
