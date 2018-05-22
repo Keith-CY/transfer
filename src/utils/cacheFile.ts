@@ -71,6 +71,7 @@ export default async (key: string, file: any, force: ForceFlag) => {
   if (!(res as { data: boolean }).data) {
     return res
   }
+
   return {
     data: true,
     message: `File ${key} ${

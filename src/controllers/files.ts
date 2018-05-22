@@ -52,14 +52,19 @@ class Files {
    * @description cache file locally
    * @param {string} key - unique index
    * @param {string | stream} content - the file should be cached
-   * @param {boolean} forceFlag
+   * @param {enum} forceFlag
    * @returns
    */
   public static async create (ctx: Context, next: Function) {
-    // const { key, forceFlag = 0 } = ctx.request.body.fields
-    // const file =
-    //   ctx.request.body.fields.content || ctx.request.body.files.content
-    const { key, content: file, forceFlag = ForceFlag.NO } = ctx.request.body
+    if (ctx.request.body.fields) {
+      const { key, forceFlag = ForceFlag.NO } = ctx.request.body.fields
+      const file =
+        ctx.request.body.fields.content || ctx.request.body.files.content
+      const result = await cacheFile(key, file, forceFlag)
+      return (ctx.body = result)
+    }
+    const { key, forceFlag = ForceFlag.NO } = ctx.request.body
+    const file = ctx.body.content || ctx.request.body.files.content
     const result = await cacheFile(key, file, forceFlag)
     return (ctx.body = result)
   }
@@ -103,7 +108,6 @@ class Files {
       // form data
       const formData = new FormData()
       formData.append('key', `${key}`)
-      // formData.append('file', file)
       formData.append(
         'content',
         fs.createReadStream(
@@ -116,7 +120,7 @@ class Files {
           headers: formData.getHeaders(),
         })
         .then(res => res.data)
-        .catch(err => err)
+        .catch(err => logger.error(err.message))
 
       return (ctx.body = sendResponse)
     }
