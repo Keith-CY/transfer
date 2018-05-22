@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import fileService from '../contexts/file'
-import { FileErrors, FileAction } from './../enums'
+import { FileErrors, FileAction, ForceFlag } from './../enums'
 import log from '../utils/log'
 
 const logger = log('utils')
@@ -16,9 +16,9 @@ declare class process {
  * @description
  * @param {string} key - unique index
  * @param {stream | string} content - user info
- * @param {boolean} force - overwritten or not
+ * @param {enum} force - overwritten or not
  */
-export default async (key: string, file: any, force: boolean) => {
+export default async (key: string, file: any, force: ForceFlag) => {
   let action = FileAction.CREATE
   // verify params, key and file are required
   if (!key || !file) {
@@ -36,7 +36,7 @@ export default async (key: string, file: any, force: boolean) => {
   const cached = await fileService.getFileName(key)
 
   if ((cached as { data: string }).data) {
-    if (!force) {
+    if (force === ForceFlag.NO) {
       // overwritten is not allowed
       return {
         error: {

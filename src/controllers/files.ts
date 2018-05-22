@@ -5,7 +5,7 @@ import axios from 'axios'
 import { Context } from 'koa'
 import fileService from '../contexts/file'
 import cacheFile from '../utils/cacheFile'
-import { FileErrors } from './../enums'
+import { FileErrors, ForceFlag } from './../enums'
 import { CachedFile } from './../contexts/model'
 import log from '../utils/log'
 
@@ -56,10 +56,11 @@ class Files {
    * @returns
    */
   public static async create (ctx: Context, next: Function) {
-    const { key, forceFlag = 0 } = ctx.request.body.fields
-    const file =
-      ctx.request.body.fields.content || ctx.request.body.files.content
-    const result = await cacheFile(key, file, !!+forceFlag)
+    // const { key, forceFlag = 0 } = ctx.request.body.fields
+    // const file =
+    //   ctx.request.body.fields.content || ctx.request.body.files.content
+    const { key, content: file, forceFlag = ForceFlag.NO } = ctx.request.body
+    const result = await cacheFile(key, file, forceFlag)
     return (ctx.body = result)
   }
 
