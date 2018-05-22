@@ -1,5 +1,6 @@
 apps:
   - script: ./dist/index.js
+    name: transfer
     instances: 0
     exec_mode: cluster
     env:

@@ -11,10 +11,16 @@
     "build": "tsc && cp -r ./src/public ./dist",
     "test:serve": "nodemon --config ./config/nodemon.test.json",
     "test": "jest",
-    "debug": "nodemon test/debug.js"
+    "debug": "nodemon test/debug.js",
+    "pm2:start": "pm2 start ./config/process.yml",
+    "pm2:stop": "pm2 stop transfer",
+    "pm2:restart": "pm2 restart transfer"
   },
   "lint-staged": {
-    "*.ts": ["eslint --fix", "git add"]
+    "*.ts": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -25,6 +31,7 @@
     "koa-router": "^7.4.0",
     "log4js": "^2.5.3",
     "pg": "^7.4.1",
+    "pm2": "^2.10.4",
     "sequelize": "^4.37.6"
   },
   "devDependencies": {
@@ -56,7 +63,14 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
     "globals": {
       "ts-jest": {
         "skipBabel": true
