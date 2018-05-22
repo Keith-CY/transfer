@@ -3,8 +3,6 @@ node_modules
 yarn-error.log
 contracts
 dist
-public/files/
-files
 testPublic
 .env.*
 *.tar.gz
