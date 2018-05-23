@@ -77,7 +77,7 @@ class Files {
   public static async send (ctx: Context, next: Function) {
     const { key, orgId } = ctx.request.query
     // verify params
-    if (!key || !orgId) {
+    if (key === undefined || orgId === undefined) {
       return (ctx.body = {
         error: {
           code: -1,

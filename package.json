@@ -11,7 +11,8 @@
     "build": "tsc && cp -r ./src/public ./dist",
     "test:serve": "nodemon --config ./config/nodemon.test.json",
     "test": "jest",
-    "debug": "nodemon test/debug.js"
+    "debug": "nodemon test/debug.js",
+    "pm2:start": "pm2 start ./config/process.yml"
   },
   "lint-staged": {
     "*.ts": [

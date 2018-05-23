@@ -14,7 +14,7 @@ class Orgs {
 
   public static async create (ctx: Context, next: Function) {
     const { orgId, addr } = ctx.request.body
-    if (!orgId || !addr) {
+    if (orgId === undefined || addr === undefined) {
       return (ctx.body = {
         error: {
           code: -1,
@@ -22,13 +22,13 @@ class Orgs {
         },
       })
     }
-    const result = await orgService.addOrg(orgId, addr)
+    const result = await orgService.addOrg(orgId.toString(), addr)
     return (ctx.body = result)
   }
 
   public static async show (ctx: Context, next: Function) {
     const { orgId } = ctx.params
-    if (!orgId) {
+    if (orgId === undefined) {
       return {
         error: {
           code: -1,
@@ -43,7 +43,7 @@ class Orgs {
 
   public static async update (ctx: Context, next: Function) {
     const { orgId, addr } = ctx.request.body
-    if (!orgId || !addr) {
+    if (orgId === undefined || addr === undefined) {
       return (ctx.body = {
         error: {
           code: -1,
@@ -57,7 +57,7 @@ class Orgs {
 
   public static async delete (ctx: Context, next: Function) {
     const { orgId } = ctx.request.body
-    if (!orgId) {
+    if (orgId === undefined) {
       return (ctx.body = {
         error: {
           code: -1,
