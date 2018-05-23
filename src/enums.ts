@@ -12,3 +12,8 @@ export enum ForceFlag {
   NO = '0',
   YES = '1',
 }
+
+export enum OrgErrors {
+  NotFound = 'Org Not Found',
+  Exist = 'Org Exists',
+}

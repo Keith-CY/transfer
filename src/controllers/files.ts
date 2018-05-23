@@ -4,12 +4,13 @@ import * as FormData from 'form-data'
 import axios from 'axios'
 import { Context } from 'koa'
 import fileService from '../contexts/file'
+import orgService from '../contexts/org'
 import cacheFile from '../utils/cacheFile'
 import { FileErrors, ForceFlag } from './../enums'
 import { CachedFile } from './../contexts/model'
 import log from '../utils/log'
 
-const logger = log('controller')
+const logger = log('files-controller')
 
 declare class process {
   static env: {
@@ -74,17 +75,33 @@ class Files {
    * @description send file to remote
    */
   public static async send (ctx: Context, next: Function) {
-    const { key, remote } = ctx.request.query
+    const { key, orgId } = ctx.request.query
     // verify params
-    if (!key || !remote) {
+    if (!key || !orgId) {
       return (ctx.body = {
         error: {
           code: -1,
-          message: 'key or remote requried',
+          message: 'key or orgId requried',
         },
       })
     }
 
+    const org: { data?: string; error?: any } = await orgService.getOrgAddr(
+      orgId,
+    )
+    if (org.error) {
+      return (ctx.body = {
+        error: org.error,
+      })
+    }
+    if (!org.data) {
+      return (ctx.body = {
+        error: {
+          code: -1,
+          message: `Org doesn't have ip`,
+        },
+      })
+    }
     logger.debug(`Sending file: key: ${key}`)
 
     logger.debug('getting filename')
@@ -116,7 +133,7 @@ class Files {
       )
 
       const sendResponse = await axios
-        .post(remote, formData, {
+        .post(org.data, formData, {
           headers: formData.getHeaders(),
         })
         .then(res => res.data)

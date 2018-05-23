@@ -7,7 +7,7 @@ import service, { CachedFile } from './model'
 import { FileErrors, FileAction } from './../enums'
 import log from '../utils/log'
 
-const logger = log('context')
+const logger = log('file-context')
 
 declare class process {
   static env: {
@@ -36,7 +36,7 @@ class FileService {
           }
         })
         .catch(err => {
-          logger.debug('creating file failed')
+          logger.error('creating file failed')
           return {
             error: {
               code: -1,
@@ -101,7 +101,7 @@ class FileService {
       },
     })
       .then((file: { filename: string }) => {
-        if (file) {
+        if (file && file.filename) {
           logger.debug(
             `getting filename success, key: ${key}, filename: ${file.filename}`,
           )
@@ -116,7 +116,6 @@ class FileService {
       })
       .catch(err => {
         logger.error(`get filename failed`)
-        logger.error(err)
         return {
           error: { code: -1, message: JSON.stringify(err) },
         }

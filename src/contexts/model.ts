@@ -49,4 +49,18 @@ export const CachedFile = sequelize.define('cached_file', {
   },
 })
 
+export const Org = sequelize.define('org', {
+  orgId: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    primaryKey: true,
+    unique: true,
+  },
+  addr: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true,
+  },
+})
+
 export default sequelize

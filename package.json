@@ -14,7 +14,10 @@
     "debug": "nodemon test/debug.js"
   },
   "lint-staged": {
-    "*.ts": ["eslint --fix", "git add"]
+    "*.ts": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -33,8 +36,8 @@
     "@types/jest": "^22.2.3",
     "@types/koa": "^2.0.45",
     "@types/koa-router": "^7.0.27",
-    "@types/node": "^9.6.6",
-    "@types/sequelize": "^4.27.16",
+    "@types/node": "^10.1.2",
+    "@types/sequelize": "^4.27.18",
     "eslint": "^4.19.1",
     "eslint-config-airbnb": "^16.1.0",
     "eslint-config-prettier": "^2.9.0",
@@ -56,7 +59,14 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
     "globals": {
       "ts-jest": {
         "skipBabel": true
