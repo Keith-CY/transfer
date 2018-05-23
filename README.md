@@ -295,12 +295,14 @@ None
 #### Returns
 
 ```json
-[
-  {
-    "orgId": "orgId",
-    "addr": "addr"
-  }
-]
+{
+  "data": [
+    {
+      "orgId": "orgId",
+      "addr": "addr"
+    }
+  ]
+}
 // or
 {
   "error": {
