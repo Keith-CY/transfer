@@ -98,7 +98,7 @@ class Files {
       return (ctx.body = {
         error: {
           code: -1,
-          message: `Org doesn't have ip`,
+          message: `Org doesn't have remote address`,
         },
       })
     }
