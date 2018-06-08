@@ -22,8 +22,11 @@ interface SError {
   message: string
 }
 
-interface FileData {
-  data?: string
+export interface FileData {
+  data?: {
+    filename: string
+    forceFlag: ForceFlag
+  }
   error?: SError
 }
 /**
@@ -39,10 +42,10 @@ class Files {
    */
   public static async show (ctx: Context, next: Function) {
     const { key } = ctx.params
-    const result: FileData = await fileService.getFileName(key)
+    const result: FileData = await fileService.getFile(key)
 
     if (result.data) {
-      const fileStream = await fileService.loadCachedFile(result.data)
+      const fileStream = await fileService.loadCachedFile(result.data.filename)
       return (ctx.body = fileStream)
     }
     return (ctx.body = result)
@@ -105,7 +108,7 @@ class Files {
     logger.debug(`Sending file: key: ${key}`)
 
     logger.debug('getting filename')
-    const result: FileData = await fileService.getFileName(key)
+    const result: FileData = await fileService.getFile(key)
     logger.debug(result.toString())
 
     if (result.data) {
@@ -113,7 +116,12 @@ class Files {
       // read file
       try {
         fs.accessSync(
-          path.join(__dirname, '../', process.env.UPLOAD_DIR, result.data),
+          path.join(
+            __dirname,
+            '../',
+            process.env.UPLOAD_DIR,
+            result.data.filename,
+          ),
           fs.constants.R_OK,
         )
       } catch (err) {
@@ -128,7 +136,12 @@ class Files {
       formData.append(
         'content',
         fs.createReadStream(
-          path.join(__dirname, '../', process.env.UPLOAD_DIR, result.data),
+          path.join(
+            __dirname,
+            '../',
+            process.env.UPLOAD_DIR,
+            result.data.filename,
+          ),
         ),
       )
 

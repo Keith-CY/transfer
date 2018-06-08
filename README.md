@@ -151,7 +151,7 @@ Same as `Create Method`
 ```json
 {
   "orgId": "orgId", // orgId
-  "addr": "http://127.0.0.1/files/create:3000" // remote address
+  "addr": "http://127.0.0.1:3000/files/create" // remote address
 }
 ```
 

@@ -4,7 +4,7 @@ import Sequelize from 'sequelize'
 import axios from 'axios'
 import * as log4js from 'log4js'
 import service, { CachedFile } from './model'
-import { FileErrors, FileAction } from './../enums'
+import { FileErrors, ForceFlag } from './../enums'
 import log from '../utils/log'
 
 const logger = log('file-context')
@@ -22,12 +22,13 @@ class FileService {
    * @param {string} key
    * @param {string} filename
    */
-  public static cacheFile (key: string, filename: string) {
-    logger.debug('caching file')
+  public static cacheFile (key: string, filename: string, forceFlag: ForceFlag) {
+    logger.debug(`caching file with flag ${forceFlag}`)
     return service.sync().then(() =>
       CachedFile.create({
         key,
         filename,
+        force_flag: forceFlag,
       })
         .then(() => {
           logger.debug('creating file success')
@@ -56,8 +57,12 @@ class FileService {
    * @param {string} key
    * @param {string} filename
    */
-  public static updateFile (key: string, filename: string) {
-    logger.debug('updating file')
+  public static updateFile (
+    key: string,
+    filename: string,
+    forceFlag: ForceFlag,
+  ) {
+    logger.debug(`updating file with flag ${forceFlag}`)
     return CachedFile.update(
       {
         filename,
@@ -89,23 +94,25 @@ class FileService {
       })
   }
   /**
-   * @method getFileName
+   * @method getFile
    * @description query file name
    * @param {string} key
    */
-  public static getFileName (key: string) {
+  public static getFile (key: string) {
     logger.debug('getting filename')
     return CachedFile.findOne({
       where: {
         key,
       },
     })
-      .then((file: { filename: string }) => {
+      .then((file: { filename: string; force_flag: ForceFlag }) => {
         if (file && file.filename) {
           logger.debug(
             `getting filename success, key: ${key}, filename: ${file.filename}`,
           )
-          return { data: file.filename }
+          return {
+            data: { filename: file.filename, forceFlag: file.force_flag },
+          }
         }
         return {
           error: {
