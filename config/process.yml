@@ -1,6 +1,7 @@
 apps:
   - script: ./dist/index.js
-    instances: 1
+    name: transfer
+    instances: 0
     exec_mode: cluster
     # env:
     #   NODE_ENV:production

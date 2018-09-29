@@ -10,9 +10,13 @@ import envPath from './utils/envPath'
 const logger = log('index')
 
 // load config
-require('dotenv').config({
-  path: path.join(__dirname, '../config/', envPath(process.env.NODE_ENV)),
-})
+if (process.env.NODE_ENV === 'development') {
+  /* eslint-disable global-require */
+  require('dotenv').config({
+    path: path.join(__dirname, '../config/', envPath(process.env.NODE_ENV)),
+  })
+  /* eslint-enable global-require */
+}
 
 // set port
 const { PORT = 3000 } = process.env

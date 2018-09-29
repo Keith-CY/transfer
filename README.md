@@ -53,7 +53,7 @@ pm2 start ./config/process.yml
 {
   "key": "hello_world", // string, required
   "content": "Hello World", // string, stream, required
-  "forceFlag": "0" // enum, "0" => false(default), "1" => true
+  "forceFlag": 0 // integer, optional, 0 = false, 1 = true
 }
 ```
 
