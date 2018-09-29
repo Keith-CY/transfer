@@ -1,72 +1,160 @@
 import * as fs from 'fs'
+import * as path from 'path'
+import * as FormData from 'form-data'
+import axios from 'axios'
 import { Context } from 'koa'
 import fileService from '../contexts/file'
-import authService from '../contexts/auth'
+import orgService from '../contexts/org'
+import cacheFile from '../utils/cacheFile'
+import { FileErrors, ForceFlag } from './../enums'
+import { CachedFile } from './../contexts/model'
+import log from '../utils/log'
 
+const logger = log('files-controller')
+
+declare class process {
+  static env: {
+    UPLOAD_DIR: string
+  }
+}
+interface SError {
+  code: number
+  message: string
+}
+
+export interface FileData {
+  data?: {
+    filename: string
+    forceFlag: ForceFlag
+  }
+  error?: SError
+}
+/**
+ * @class Files
+ * @description file controller, including show, create, send mehtods
+ */
 class Files {
   /**
-   * @function index
-   * @description show file list
-   * @param {Context} ctx
-   * @param {Function} next
-   * @returns
-   * @memberof Files
+   * @method show
+   * @description load local file
+   * @param {string} key - unique index
+   * @returns {stream} fileStream
    */
-  public static async index (ctx: Context, next: Function) {
-    const files = await ['file1', 'file2']
-    return files
+  public static async show (ctx: Context, next: Function) {
+    const { key } = ctx.params
+    const result: FileData = await fileService.getFile(key)
+
+    if (result.data) {
+      const fileStream = await fileService.loadCachedFile(result.data.filename)
+      return (ctx.body = fileStream)
+    }
+    return (ctx.body = result)
   }
 
   /**
-   * @function show
-   * @description request single file
-   * @param {Context} ctx
-   * @param {Function} next
-   * @memberof Files
+   * @method create
+   * @description cache file locally
+   * @param {string} key - unique index
+   * @param {string | stream} content - the file should be cached
+   * @param {enum} forceFlag
+   * @returns
    */
-  public static async show (ctx: Context, next: Function) {
-    const { signature } = ctx.request.query
-    const { hash } = ctx.params
-    // check required params {signature, hash}
-    if (!hash || !signature) {
+  public static async create (ctx: Context, next: Function) {
+    if (ctx.request.body.fields) {
+      const { key, forceFlag = ForceFlag.NO } = ctx.request.body.fields
+      const file =
+        ctx.request.body.fields.content || ctx.request.body.files.content
+      const result = await cacheFile(key, file, forceFlag)
+      return (ctx.body = result)
+    }
+    const { key, forceFlag = ForceFlag.NO } = ctx.request.body
+    const file = ctx.request.body.content || ctx.request.body.files.content
+    const result = await cacheFile(key, file, forceFlag)
+    return (ctx.body = result)
+  }
+
+  /**
+   * @function send
+   * @description send file to remote
+   */
+  public static async send (ctx: Context, next: Function) {
+    const { key, orgId } = ctx.request.query
+    // verify params
+    if (key === undefined || orgId === undefined) {
       return (ctx.body = {
         error: {
           code: -1,
-          message: 'Hash or Signature Missed',
+          message: 'key or orgId requried',
         },
       })
     }
-    // extract pubkey
-    const pubkey = signature
 
-    const permitted = (await authService.isLocalReq(pubkey))
-      ? true
-      : authService.isPermitted(pubkey)
-
-    if (!permitted) {
-      // not permitted
+    const org: { data?: string; error?: any } = await orgService.getOrgAddr(
+      orgId,
+    )
+    if (org.error) {
+      return (ctx.body = {
+        error: org.error,
+      })
+    }
+    if (!org.data) {
       return (ctx.body = {
         error: {
           code: -1,
-          message: 'No Permission',
+          message: `Org doesn't have remote address`,
         },
       })
     }
-    // permitted
-    const isCached = fileService.isCached(hash)
+    logger.debug(`Sending file: key: ${key}`)
 
-    if (isCached) {
-      // cached
-      const fileStream = fileService.readCachedFile(hash)
-      return (ctx.body = fileStream)
+    logger.debug('getting filename')
+    const result: FileData = await fileService.getFile(key)
+    logger.debug(result.toString())
+
+    if (result.data) {
+      // let file
+      // read file
+      try {
+        fs.accessSync(
+          path.join(
+            __dirname,
+            '../',
+            process.env.UPLOAD_DIR,
+            result.data.filename,
+          ),
+          fs.constants.R_OK,
+        )
+      } catch (err) {
+        return (ctx.body = {
+          error: { code: -1, message: FileErrors.NotFound },
+        })
+      }
+
+      // form data
+      const formData = new FormData()
+      formData.append('key', `${key}`)
+      formData.append(
+        'content',
+        fs.createReadStream(
+          path.join(
+            __dirname,
+            '../',
+            process.env.UPLOAD_DIR,
+            result.data.filename,
+          ),
+        ),
+      )
+
+      const sendResponse = await axios
+        .post(org.data, formData, {
+          headers: formData.getHeaders(),
+        })
+        .then(res => res.data)
+        .catch(err => logger.error(err.message))
+
+      return (ctx.body = sendResponse)
     }
-    // not cached
-    const res = await fileService
-      .readRemoteFile(hash, signature)
-      .then(_res => _res.data)
-    return (ctx.body = res)
-
-    // return ctx.body = fileService.readRemoteFile(hash, signature).then(.pipe(ctx.body)
+    return (ctx.body = result)
   }
 }
 

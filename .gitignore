@@ -1,4 +1,9 @@
+.vscode
 node_modules
 yarn-error.log
-.vscode
-files
+contracts
+dist
+testPublic
+.env.*
+*.tar.gz
+
