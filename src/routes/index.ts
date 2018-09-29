@@ -1,12 +1,29 @@
 import * as Router from 'koa-router'
-import controller from '../controllers/files'
+import fileController from '../controllers/files'
+import orgController from '../controllers/orgs'
 
-const router = new Router({
+// File Router
+const fileRouter = new Router({
   prefix: '/files',
 })
 
-router.get('/send', controller.send)
-router.post('/create', controller.create)
-router.get('/show/:key', controller.show)
+fileRouter.get('/send', fileController.send)
+fileRouter.post('/create', fileController.create)
+fileRouter.get('/show/:key', fileController.show)
+
+// Org Router
+const orgRouter = new Router({
+  prefix: '/orgs',
+})
+
+orgRouter.get('/index', orgController.index)
+orgRouter.post('/create', orgController.create)
+orgRouter.post('/update', orgController.update)
+orgRouter.post('/delete', orgController.delete)
+orgRouter.get('/:orgId', orgController.show)
+
+const router = new Router()
+router.use(fileRouter.routes()).use(fileRouter.allowedMethods())
+router.use(orgRouter.routes()).use(orgRouter.allowedMethods())
 
 export default router

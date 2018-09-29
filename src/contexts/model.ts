@@ -51,6 +51,24 @@ export const CachedFile = sequelize.define('cached_file', {
     allowNull: false,
     unique: true,
   },
+  force_flag: {
+    type: Sequelize.ENUM('0', '1'),
+    allowNull: false,
+  },
+})
+
+export const Org = sequelize.define('org', {
+  orgId: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    primaryKey: true,
+    unique: true,
+  },
+  addr: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true,
+  },
 })
 
 export default sequelize

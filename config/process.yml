@@ -3,5 +3,5 @@ apps:
     name: transfer
     instances: 0
     exec_mode: cluster
-    env:
-      NODE_ENV:production
+    # env:
+    #   NODE_ENV:production

@@ -1,7 +1,8 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import fileService from '../contexts/file'
-import { FileErrors, FileAction } from './../enums'
+import { FileErrors, FileAction, ForceFlag } from './../enums'
+import { FileData } from '../controllers/files'
 import log from '../utils/log'
 
 const logger = log('utils')
@@ -16,9 +17,9 @@ declare class process {
  * @description
  * @param {string} key - unique index
  * @param {stream | string} content - user info
- * @param {boolean} force - overwritten or not
+ * @param {enum} force - overwritten or not
  */
-export default async (key: string, file: any, force: boolean) => {
+export default async (key: string, file: any, force: ForceFlag) => {
   let action = FileAction.CREATE
   // verify params, key and file are required
   if (!key || !file) {
@@ -33,10 +34,10 @@ export default async (key: string, file: any, force: boolean) => {
   logger.debug(`cache file with: key: ${key}, force: ${force}`)
 
   // query file name from db
-  const cached = await fileService.getFileName(key)
+  const cached = (await fileService.getFile(key)) as FileData
 
-  if ((cached as { data: string }).data) {
-    if (!force) {
+  if (cached.data) {
+    if (cached.data.forceFlag === ForceFlag.NO) {
       // overwritten is not allowed
       return {
         error: {
@@ -66,11 +67,12 @@ export default async (key: string, file: any, force: boolean) => {
 
   const res =
     action === FileAction.CREATE
-      ? await fileService.cacheFile(key, filename)
-      : await fileService.updateFile(key, filename)
+      ? await fileService.cacheFile(key, filename, force)
+      : await fileService.updateFile(key, filename, force)
   if (!(res as { data: boolean }).data) {
     return res
   }
+
   return {
     data: true,
     message: `File ${key} ${

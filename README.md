@@ -37,6 +37,8 @@ pm2 start ./config/process.yml
 
 ## APIs
 
+### Content Manage
+
 ### Upload Content
 
 #### URL
@@ -122,7 +124,7 @@ Return Content or error
 ```json
 {
   "key": "hello_world", // string, required
-  "remote": "http://localhost:3000/files/create" // string, required
+  "orgId": "orgId" // string, required
 }
 ```
 
@@ -133,3 +135,179 @@ None
 #### Returns
 
 Same as `Create Method`
+
+### Orgs Management
+
+### Add Org
+
+#### URL
+
+```bash
+[POST] http://47.97.171.140:3000/orgs/create
+```
+
+#### Params
+
+```json
+{
+  "orgId": "orgId", // orgId
+  "addr": "http://127.0.0.1:3000/files/create" // remote address
+}
+```
+
+#### Other
+
+None
+
+#### Returns
+
+```json
+{
+  "data": true
+}
+// or
+{
+  "error": {
+    "code": -1,
+    "message": "error message"
+  }
+}
+```
+
+### Update Org
+
+#### URL
+
+```bash
+[POST] http://47.97.171.140:3000/orgs/update
+```
+
+#### Params
+
+```json
+{
+  "orgId": "orgId", // orgId
+  "addr": "http://127.0.0.1/files/create:3000" // remote address
+}
+```
+
+#### Other
+
+None
+
+#### Returns
+
+```json
+{
+  "data": true
+}
+// or
+{
+  "error": {
+    "code": -1,
+    "message": "error message"
+  }
+}
+```
+
+### Delete Org
+
+#### URL
+
+```bash
+[POST] http://47.97.171.140:3000/orgs/delete
+```
+
+#### Params
+
+```json
+{
+  "orgId": "orgId" // orgId
+}
+```
+
+#### Other
+
+None
+
+#### Returns
+
+```json
+{
+  "data": true
+}
+// or
+{
+  "error": {
+    "code": -1,
+    "message": "error message"
+  }
+}
+```
+
+### Get Org
+
+#### URL
+
+```bash
+[GET] http://47.97.171.140:3000/orgs/show/:orgId
+```
+
+#### Params
+
+None
+
+#### Other
+
+None
+
+#### Returns
+
+```json
+{
+  "data": "remote addr"
+}
+// or
+{
+  "error": {
+    "code": -1,
+    "message": "error message"
+  }
+}
+```
+
+### List Org
+
+#### URL
+
+```bash
+[GET] http://47.97.171.140:3000/orgs/index
+```
+
+#### Params
+
+None
+
+#### Other
+
+None
+
+#### Returns
+
+```json
+{
+  "data": [
+    {
+      "orgId": "orgId",
+      "addr": "addr"
+    }
+  ]
+}
+// or
+{
+  "error": {
+    "code": -1,
+    "message": "error message"
+  }
+}
+```

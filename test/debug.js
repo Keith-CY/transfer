@@ -14,7 +14,7 @@ const host = 'http://localhost:3000/files/'
  * @param {string} _key - unique index
  * @param {string} _content - content
  */
-const sendFormData = (_key, _content, _forceFlag = 0) => {
+const sendFormData = (_key, _content, _forceFlag = '0') => {
   const formData = new FormData()
   formData.append('key', _key)
   formData.append('content', _content)
@@ -30,15 +30,15 @@ const sendFormData = (_key, _content, _forceFlag = 0) => {
  * @param {string} _key - unique index
  * @param {string} _content - contnet to upload
  */
-const uploadFile = (_key, _content) =>
-  sendFormData(_key, _content)
-    .then(res => {
-      logger.info('expect to upload file success')
-      logger.info(res.data)
-    })
-    .catch(err => {
-      logger.error(err)
-    })
+const uploadFile = (_key, _content, _force = '0') =>
+  sendFormData(_key, _content, _force)
+  .then(res => {
+    logger.info('expect to upload file success')
+    logger.info(res.data)
+  })
+  .catch(err => {
+    logger.error(err)
+  })
 
 /**
  * @function getFile
@@ -48,12 +48,12 @@ const uploadFile = (_key, _content) =>
  */
 const getFile = (_key, _content) =>
   axios
-    .get(`${host}show/${_key}`)
-    .then(res => {
-      logger.info(`expect to receive ${_content}`)
-      logger.info(res.data)
-    })
-    .catch(err => loggger.warn(err))
+  .get(`${host}show/${_key}`)
+  .then(res => {
+    logger.info(`expect to receive ${_content}`)
+    logger.info(res.data)
+  })
+  .catch(err => loggger.warn(err))
 
 /**
  * @function sendExistFile
@@ -62,47 +62,32 @@ const getFile = (_key, _content) =>
  */
 const sendExistFile = (_key, _content) =>
   sendFormData(_key, _content)
-    .then(res => {
-      logger.info('expect to upload file failed')
-      logger.info(res.data)
-    })
-    .catch(err => {
-      logger.error(err)
-    })
+  .then(res => {
+    logger.info('if with forceFlag 0, expect to upload file failed, with forceFlag 1, expect to update file success')
+    logger.info(res.data)
+  })
+  .catch(err => {
+    logger.error(err)
+  })
 
-/**
- * @function forceUpdateFile
- * @param {string} _key - unique index
- * @param {string} _content - content to update
- */
-const forceUpdateFile = (_key, _content) =>
-  sendFormData(_key, _content, 1)
-    .then(res => {
-      logger.info('expect to update file')
-      logger.info(res.data)
-    })
-    .then(async () => {
-      await getFile(_key, _content)
-    })
 /**
  * @function getFileNotExist
  * @param {string} _key - unique index
  */
 const getFileNotExist = _key =>
   axios
-    .get(`${host}show/${_key}`)
-    .then(res => {
-      logger.info('expect file not found')
-      logger.info(res.data)
-    })
-    .catch(err => logger.error(err))
+  .get(`${host}show/${_key}`)
+  .then(res => {
+    logger.info('expect file not found')
+    logger.info(res.data)
+  })
+  .catch(err => logger.error(err))
 
-const debug = async () => {
-  await uploadFile(key, content)
+const debugWithFlag = async (flag) => {
+  await uploadFile(key, content, flag)
   await getFile(key, content)
   await sendExistFile(key, content)
-  await forceUpdateFile(key, `${content}-forceUpdate`)
   await getFileNotExist('notExist')
 }
 
-debug()
+debugWithFlag(0)

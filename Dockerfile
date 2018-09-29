@@ -12,3 +12,4 @@ ENV NODE_ENV production
 
 # CMD ["npm", "run", "pm2:start"]
 CMD ["node", "./dist/index.js"]
+
